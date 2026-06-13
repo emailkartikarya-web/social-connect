@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "build": "cd frontend && npm install --no-audit --no-fund && npm run build"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "nodemailer": "^8.0.10"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
