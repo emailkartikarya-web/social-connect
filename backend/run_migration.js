@@ -10,6 +10,11 @@ const logger = require('./utils/logger');
 
 async function run() {
   try {
+    const baseSqlPath = path.join(__dirname, 'migrations', '000_base_schema.sql');
+    const baseSql = fs.readFileSync(baseSqlPath, 'utf8');
+    logger.info("Running base schema migration...");
+    await pool.query(baseSql);
+    logger.info("✅ Base schema migration completed!");
     // Run original leave tables migration
     const leaveSqlPath = path.join(__dirname, 'migrations', 'create_leave_tables.sql');
     const leaveSql = fs.readFileSync(leaveSqlPath, 'utf8');
