@@ -42,8 +42,6 @@ function Layout({ children, title }) {
         const decoded = jwtDecode(token);
         setRole(decoded.role || "");
         setEmployeeProfileId(decoded.employee_profile_id || null);
-        
-        // Fetch unread notification count
         fetchUnreadCount();
       } catch (error) {
         console.error("Token Decode Error:", error);
@@ -75,8 +73,8 @@ function Layout({ children, title }) {
     <div className={`app-layout ${darkMode ? "dark-mode" : ""}`}>
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <h3>EPMS</h3>
-          <p>Employee System</p>
+          <h3>SC</h3>
+          <p>HRMS Platform</p>
         </div>
 
         <nav className="sidebar-menu">
@@ -144,6 +142,7 @@ function Layout({ children, title }) {
               <span className="badge bg-danger ms-2">{unreadNotifications}</span>
             )}
           </NavLink>
+
           {role ? (
             <button className="logout-btn" onClick={logout}>
               <FaSignOutAlt /> Logout
@@ -161,7 +160,7 @@ function Layout({ children, title }) {
           <div className="flex-grow-1">
             <h4>{title}</h4>
             <span>
-              Employee Profile Management System
+              Social Connect HRMS
               {role && (
                 <>
                   {" "}

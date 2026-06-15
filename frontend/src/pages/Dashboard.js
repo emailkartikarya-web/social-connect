@@ -12,16 +12,48 @@ import {
   BarElement,
 } from "chart.js";
 import { Pie, Bar } from "react-chartjs-2";
+import {
+  FaUsers, FaCheckCircle, FaTimesCircle, FaBuilding,
+  FaTools, FaImage, FaRupeeSign, FaTrophy,
+  FaUserPlus, FaClipboardList, FaChartBar, FaCog,
+} from "react-icons/fa";
 import API from "../services/api";
 import Layout from "../components/Layout";
 
-ChartJS.register(
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+
+const StatCard = ({ icon: Icon, label, value, color, bg }) => (
+  <div style={{
+    background: "white",
+    borderRadius: "16px",
+    padding: "24px",
+    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+    borderLeft: `4px solid ${color}`,
+    display: "flex",
+    alignItems: "center",
+    gap: "16px",
+  }}>
+    <div style={{
+      width: "52px", height: "52px", borderRadius: "14px",
+      background: bg, display: "flex",
+      alignItems: "center", justifyContent: "center", flexShrink: 0,
+    }}>
+      <Icon style={{ color, fontSize: "22px" }} />
+    </div>
+    <div>
+      <p style={{ color: "#64748b", fontSize: "13px", margin: "0 0 4px", fontWeight: "500" }}>{label}</p>
+      <h3 style={{ color: "#0f172a", fontWeight: "800", margin: 0, fontSize: "26px", letterSpacing: "-0.5px" }}>{value}</h3>
+    </div>
+  </div>
+);
+
+const SectionHeader = ({ title }) => (
+  <div style={{
+    display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px",
+  }}>
+    <div style={{ width: "4px", height: "22px", background: "#10b981", borderRadius: "4px" }} />
+    <h4 style={{ margin: 0, fontWeight: "800", color: "#0f172a", fontSize: "18px" }}>{title}</h4>
+  </div>
 );
 
 function Dashboard() {
@@ -34,45 +66,31 @@ function Dashboard() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  useEffect(() => { fetchDashboardData(); }, []);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-
       const statsRes = await API.get("/dashboard/stats");
       setStats(statsRes.data);
-
       if (statsRes.data.dashboardType === "admin") {
         const empRes = await API.get("/employees");
         setEmployees(empRes.data);
       }
     } catch (error) {
       console.error("Dashboard Error:", error);
-
-      if (error.response?.data) {
-        setStats(error.response.data);
-      }else {
-        Swal.fire("Error", "Error loading dashboard data", "error");
-      }
+      if (error.response?.data) setStats(error.response.data);
+      else Swal.fire("Error", "Error loading dashboard data", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const formatCurrency = (amount) => {
-    return `₹${Number(amount || 0).toLocaleString()}`;
-  };
+  const formatCurrency = (amount) => `₹${Number(amount || 0).toLocaleString()}`;
 
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  const formatDate = (date) => new Date(date).toLocaleDateString("en-IN", {
+    day: "2-digit", month: "short", year: "numeric",
+  });
 
   const departmentCounts = employees.reduce((acc, emp) => {
     const dept = emp.department_name || "N/A";
@@ -82,66 +100,37 @@ function Dashboard() {
 
   const departmentChartData = {
     labels: Object.keys(departmentCounts),
-    datasets: [
-      {
-        label: "Employees",
-        data: Object.values(departmentCounts),
-        backgroundColor: [
-          "#3B82F6",
-          "#10B981",
-          "#F59E0B",
-          "#EF4444",
-          "#8B5CF6",
-          "#06B6D4",
-          "#EC4899",
-          "#84CC16",
-        ],
-        borderWidth: 2,
-        borderColor: "#fff",
-      },
-    ],
+    datasets: [{
+      label: "Employees",
+      data: Object.values(departmentCounts),
+      backgroundColor: ["#10b981","#3B82F6","#F59E0B","#EF4444","#8B5CF6","#06B6D4","#EC4899","#84CC16"],
+      borderWidth: 2,
+      borderColor: "#fff",
+    }],
   };
 
   const salaryChartData = {
     labels: employees.map((emp) => emp.name),
-    datasets: [
-      {
-        label: "Salary",
-        data: employees.map((emp) => Number(emp.salary || 0)),
-        backgroundColor: "#2563EB",
-        borderRadius: 8,
-      },
-    ],
+    datasets: [{
+      label: "Salary",
+      data: employees.map((emp) => Number(emp.salary || 0)),
+      backgroundColor: "#10b981",
+      borderRadius: 8,
+    }],
   };
 
-  const chartOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "bottom",
-      },
-    },
-  };
-
+  const chartOptions = { responsive: true, plugins: { legend: { position: "bottom" } } };
   const salaryChartOptions = {
     responsive: true,
-    plugins: {
-      legend: {
-        display: false,
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } },
   };
 
   if (loading) {
     return (
       <Layout title="Dashboard">
         <div className="text-center py-5">
-          <div className="spinner-border text-primary"></div>
+          <div className="spinner-border" style={{ color: "#10b981" }}></div>
           <p className="text-muted mt-3">Loading dashboard...</p>
         </div>
       </Layout>
@@ -163,340 +152,255 @@ function Dashboard() {
 
   return (
     <Layout title="Dashboard">
-      <div className="mb-4">
-        <h2 className="fw-bold">Welcome, {user.name} 👋</h2>
-        <p className="text-muted">
-          {stats.dashboardType === "admin"
-            ? "Here is the complete overview of your Employee Profile Management System."
-            : stats.dashboardType === "unlinked_employee"
-            ? "Your account is active, but your employee profile is not linked yet."
-            : "Here is your personal employee dashboard."}
-        </p>
+
+      {/* Welcome bar */}
+      <div style={{
+        background: "linear-gradient(135deg, #0f172a, #134e4a)",
+        borderRadius: "16px",
+        padding: "28px 32px",
+        marginBottom: "32px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: "16px",
+      }}>
+        <div>
+          <h2 style={{ color: "white", fontWeight: "800", margin: "0 0 6px", fontSize: "24px" }}>
+            Hey, {user.name} 👋
+          </h2>
+          <p style={{ color: "#94a3b8", margin: 0, fontSize: "14px" }}>
+            {stats.dashboardType === "admin"
+              ? "Here's what's happening across Social Connect HRMS today."
+              : stats.dashboardType === "unlinked_employee"
+              ? "Your account is active but not linked to a profile yet."
+              : "Here's your personal workspace overview."}
+          </p>
+        </div>
+        <div style={{
+          background: "rgba(16,185,129,0.15)",
+          border: "1px solid rgba(16,185,129,0.3)",
+          borderRadius: "10px",
+          padding: "8px 18px",
+          color: "#10b981",
+          fontSize: "13px",
+          fontWeight: "600",
+        }}>
+          {stats.dashboardType === "admin" ? "Admin View" : "Employee View"}
+        </div>
       </div>
 
+      {/* UNLINKED STATE */}
       {stats.dashboardType === "unlinked_employee" ? (
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-5 text-center">
-            <div className="display-1 mb-3">🔗</div>
-            <h3 className="fw-bold">Profile Not Linked</h3>
-            <p className="text-muted mb-0">{stats.message}</p>
-            <p className="text-muted mt-2">
-              Please send a request to admin to link your user account with an
-              employee profile.
-            </p>
-
-            <button
-              className="btn btn-primary mt-3"
-              onClick={() => navigate("/request-profile-link")}
-            >
-              Request Profile Link
-            </button>
-          </div>
+        <div style={{
+          background: "white", borderRadius: "16px", padding: "60px",
+          textAlign: "center", boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          borderLeft: "4px solid #10b981",
+        }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔗</div>
+          <h3 style={{ fontWeight: "800", color: "#0f172a", marginBottom: "8px" }}>Profile Not Linked</h3>
+          <p className="text-muted mb-4">{stats.message}</p>
+          <button
+            onClick={() => navigate("/request-profile-link")}
+            style={{
+              background: "linear-gradient(135deg, #10b981, #059669)",
+              color: "white", border: "none", borderRadius: "10px",
+              padding: "12px 28px", fontWeight: "700", fontSize: "14px",
+              cursor: "pointer", boxShadow: "0 4px 14px rgba(16,185,129,0.35)",
+            }}
+          >
+            Request Profile Link →
+          </button>
         </div>
+
       ) : stats.dashboardType === "employee" ? (
         <>
-          <div className="row g-4 mb-5">
+          <div className="row g-4 mb-4">
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">👤</div>
-                <p className="text-muted mb-1">My Name</p>
-                <h4>{stats.profile?.name}</h4>
-              </div>
+              <StatCard icon={FaUsers} label="My Name" value={stats.profile?.name} color="#10b981" bg="rgba(16,185,129,0.1)" />
             </div>
-
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏢</div>
-                <p className="text-muted mb-1">Department</p>
-                <h4>{stats.profile?.department_name || "N/A"}</h4>
-              </div>
+              <StatCard icon={FaBuilding} label="Department" value={stats.profile?.department_name || "N/A"} color="#3b82f6" bg="rgba(59,130,246,0.1)" />
             </div>
-
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">💼</div>
-                <p className="text-muted mb-1">Designation</p>
-                <h4>{stats.profile?.designation || "N/A"}</h4>
-              </div>
+              <StatCard icon={FaCog} label="Designation" value={stats.profile?.designation || "N/A"} color="#8b5cf6" bg="rgba(139,92,246,0.1)" />
             </div>
-
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🛠️</div>
-                <p className="text-muted mb-1">My Skills</p>
-                <h4>{stats.skills?.length || 0}</h4>
-              </div>
+              <StatCard icon={FaTools} label="My Skills" value={stats.skills?.length || 0} color="#f59e0b" bg="rgba(245,158,11,0.1)" />
             </div>
-
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🖼️</div>
-                <p className="text-muted mb-1">My Images</p>
-                <h4>{stats.imageCount || 0}</h4>
-              </div>
+              <StatCard icon={FaImage} label="My Images" value={stats.imageCount || 0} color="#06b6d4" bg="rgba(6,182,212,0.1)" />
             </div>
-
             <div className="col-lg-4 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">📊</div>
-                <p className="text-muted mb-1">Profile Completion</p>
-                <h4>{stats.profileCompletion || 0}%</h4>
-              </div>
+              <StatCard icon={FaChartBar} label="Profile Completion" value={`${stats.profileCompletion || 0}%`} color="#10b981" bg="rgba(16,185,129,0.1)" />
             </div>
           </div>
 
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">Profile Completion</h5>
+          {/* Progress bar */}
+          <div style={{ background: "white", borderRadius: "16px", padding: "24px", marginBottom: "24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+              <span style={{ fontWeight: "700", color: "#0f172a", fontSize: "15px" }}>Profile Completion</span>
+              <span style={{ color: "#10b981", fontWeight: "700" }}>{stats.profileCompletion || 0}%</span>
+            </div>
+            <div style={{ background: "#f1f5f9", borderRadius: "99px", height: "10px", overflow: "hidden" }}>
+              <div style={{
+                width: `${stats.profileCompletion || 0}%`,
+                height: "100%",
+                background: "linear-gradient(90deg, #10b981, #059669)",
+                borderRadius: "99px",
+                transition: "width 0.5s ease",
+              }} />
+            </div>
+          </div>
 
-              <div className="progress" style={{ height: "25px" }}>
-                <div
-                  className="progress-bar"
-                  style={{ width: `${stats.profileCompletion || 0}%` }}
-                >
-                  {stats.profileCompletion || 0}%
+          {/* Profile details */}
+          <div style={{ background: "white", borderRadius: "16px", padding: "28px", marginBottom: "24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <SectionHeader title="My Profile Details" />
+            <div className="row g-3">
+              {[
+                ["Email", stats.profile?.email],
+                ["Phone", stats.profile?.phone || "N/A"],
+                ["Salary", formatCurrency(stats.profile?.salary)],
+                ["Address", stats.profile?.address || "N/A"],
+              ].map(([label, val]) => (
+                <div className="col-md-6" key={label}>
+                  <p style={{ color: "#94a3b8", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px" }}>{label}</p>
+                  <p style={{ color: "#0f172a", fontWeight: "600", margin: 0 }}>{val}</p>
                 </div>
+              ))}
+              <div className="col-md-6">
+                <p style={{ color: "#94a3b8", fontSize: "12px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", margin: "0 0 4px" }}>Status</p>
+                <span style={{
+                  background: stats.profile?.status === "inactive" ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)",
+                  color: stats.profile?.status === "inactive" ? "#ef4444" : "#10b981",
+                  padding: "4px 12px", borderRadius: "99px", fontSize: "13px", fontWeight: "600",
+                }}>
+                  {stats.profile?.status === "inactive" ? "Inactive" : "Active"}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-4">My Profile Details</h5>
+          {/* Skills */}
+          <div style={{ background: "white", borderRadius: "16px", padding: "28px", marginBottom: "24px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <SectionHeader title="My Skills" />
+            {stats.skills?.length === 0 ? (
+              <p className="text-muted">No skills assigned yet.</p>
+            ) : (
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {stats.skills.map((skill, i) => (
+                  <span key={i} style={{
+                    background: "rgba(16,185,129,0.1)", color: "#059669",
+                    border: "1px solid rgba(16,185,129,0.2)",
+                    padding: "6px 14px", borderRadius: "99px", fontSize: "13px", fontWeight: "600",
+                  }}>{skill.skill_name}</span>
+                ))}
+              </div>
+            )}
+          </div>
 
+          {/* Images */}
+          <div style={{ background: "white", borderRadius: "16px", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+            <SectionHeader title="My Uploaded Images" />
+            {stats.images?.length === 0 ? (
+              <p className="text-muted">No images uploaded yet.</p>
+            ) : (
               <div className="row g-3">
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Email</p>
-                  <h6>{stats.profile?.email}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Phone</p>
-                  <h6>{stats.profile?.phone || "N/A"}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Salary</p>
-                  <h6>{formatCurrency(stats.profile?.salary)}</h6>
-                </div>
-
-                <div className="col-md-6">
-                  <p className="text-muted mb-1">Status</p>
-                  <span
-                    className={`badge ${
-                      stats.profile?.status === "inactive"
-                        ? "bg-danger"
-                        : "bg-success"
-                    }`}
-                  >
-                    {stats.profile?.status === "inactive"
-                      ? "Inactive"
-                      : "Active"}
-                  </span>
-                </div>
-
-                <div className="col-12">
-                  <p className="text-muted mb-1">Address</p>
-                  <h6>{stats.profile?.address || "N/A"}</h6>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm mb-4">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">My Skills</h5>
-
-              {stats.skills?.length === 0 ? (
-                <p className="text-muted mb-0">No skills assigned</p>
-              ) : (
-                <div className="d-flex gap-2 flex-wrap">
-                  {stats.skills.map((skill, index) => (
-                    <span key={index} className="badge bg-success px-3 py-2">
-                      {skill.skill_name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="card border-0 shadow-sm">
-            <div className="card-body p-4">
-              <h5 className="fw-bold mb-3">My Uploaded Images</h5>
-
-              {stats.images?.length === 0 ? (
-                <p className="text-muted mb-0">No images uploaded</p>
-              ) : (
-                <div className="row g-3">
-                  {stats.images.map((img) => (
-                    <div className="col-md-3 col-6" key={img.id}>
-                      <div
-                        className="border rounded shadow-sm overflow-hidden"
-                        style={{ cursor: "pointer", height: "140px" }}
-                        onClick={() => setSelectedImage(img.image_url || img.url)}
-                      >
-                        <img
-                          src={img.image_url || img.url}
-                          alt="Employee"
-                          className="img-fluid w-100 h-100"
-                          style={{ objectFit: "cover" }}
-                        />
-                      </div>
+                {stats.images.map((img) => (
+                  <div className="col-md-3 col-6" key={img.id}>
+                    <div
+                      onClick={() => setSelectedImage(img.image_url || img.url)}
+                      style={{
+                        borderRadius: "12px", overflow: "hidden", height: "140px",
+                        cursor: "pointer", border: "2px solid #e2e8f0",
+                        transition: "border-color 0.2s",
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = "#10b981"}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}
+                    >
+                      <img src={img.image_url || img.url} alt="Employee" className="img-fluid w-100 h-100" style={{ objectFit: "cover" }} />
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </>
+
       ) : (
         <>
+          {/* ADMIN STATS */}
           <div className="row g-4 mb-5">
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">👥</div>
-                <p className="text-muted mb-1">Total Employees</p>
-                <h2>{stats.employees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">✅</div>
-                <p className="text-muted mb-1">Active Employees</p>
-                <h2>{stats.activeEmployees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">⛔</div>
-                <p className="text-muted mb-1">Inactive Employees</p>
-                <h2>{stats.inactiveEmployees}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏢</div>
-                <p className="text-muted mb-1">Departments</p>
-                <h2>{stats.departments}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🛠️</div>
-                <p className="text-muted mb-1">Skills</p>
-                <h2>{stats.skills}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🖼️</div>
-                <p className="text-muted mb-1">Images</p>
-                <h2>{stats.images}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">💰</div>
-                <p className="text-muted mb-1">Average Salary</p>
-                <h2>{formatCurrency(stats.averageSalary)}</h2>
-              </div>
-            </div>
-
-            <div className="col-lg-3 col-md-6">
-              <div className="stat-card">
-                <div className="icon-box">🏆</div>
-                <p className="text-muted mb-1">Highest Salary</p>
-                <h2>{formatCurrency(stats.highestSalary)}</h2>
-              </div>
-            </div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaUsers} label="Total Employees" value={stats.employees} color="#10b981" bg="rgba(16,185,129,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaCheckCircle} label="Active Employees" value={stats.activeEmployees} color="#3b82f6" bg="rgba(59,130,246,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaTimesCircle} label="Inactive Employees" value={stats.inactiveEmployees} color="#ef4444" bg="rgba(239,68,68,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaBuilding} label="Departments" value={stats.departments} color="#8b5cf6" bg="rgba(139,92,246,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaTools} label="Skills" value={stats.skills} color="#f59e0b" bg="rgba(245,158,11,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaImage} label="Images" value={stats.images} color="#06b6d4" bg="rgba(6,182,212,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaRupeeSign} label="Average Salary" value={formatCurrency(stats.averageSalary)} color="#10b981" bg="rgba(16,185,129,0.1)" /></div>
+            <div className="col-lg-3 col-md-6"><StatCard icon={FaTrophy} label="Highest Salary" value={formatCurrency(stats.highestSalary)} color="#f59e0b" bg="rgba(245,158,11,0.1)" /></div>
           </div>
 
-          <h4 className="fw-bold mb-3">Analytics</h4>
-
-          <div className="row g-4 mb-5">
-            <div className="col-lg-5">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Employees by Department</h5>
-
-                  {employees.length === 0 ? (
-                    <p className="text-muted">No employee data available.</p>
-                  ) : (
-                    <Pie data={departmentChartData} options={chartOptions} />
-                  )}
+          {/* ANALYTICS */}
+          <div style={{ marginBottom: "32px" }}>
+            <SectionHeader title="Analytics" />
+            <div className="row g-4">
+              <div className="col-lg-5">
+                <div style={{ background: "white", borderRadius: "16px", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", height: "100%" }}>
+                  <p style={{ fontWeight: "700", color: "#0f172a", marginBottom: "20px", fontSize: "15px" }}>Employees by Department</p>
+                  {employees.length === 0
+                    ? <p className="text-muted">No employee data available.</p>
+                    : <Pie data={departmentChartData} options={chartOptions} />}
                 </div>
               </div>
-            </div>
-
-            <div className="col-lg-7">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Salary Distribution</h5>
-
-                  {employees.length === 0 ? (
-                    <p className="text-muted">No salary data available.</p>
-                  ) : (
-                    <Bar data={salaryChartData} options={salaryChartOptions} />
-                  )}
+              <div className="col-lg-7">
+                <div style={{ background: "white", borderRadius: "16px", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", height: "100%" }}>
+                  <p style={{ fontWeight: "700", color: "#0f172a", marginBottom: "20px", fontSize: "15px" }}>Salary Distribution</p>
+                  {employees.length === 0
+                    ? <p className="text-muted">No salary data available.</p>
+                    : <Bar data={salaryChartData} options={salaryChartOptions} />}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="row g-4 mb-5">
-            <div className="col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Recent Employees</h5>
-
+          {/* RECENT */}
+          <div style={{ marginBottom: "32px" }}>
+            <SectionHeader title="Recent Activity" />
+            <div className="row g-4">
+              <div className="col-lg-6">
+                <div style={{ background: "white", borderRadius: "16px", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", height: "100%" }}>
+                  <p style={{ fontWeight: "700", color: "#0f172a", marginBottom: "16px", fontSize: "15px" }}>Recent Employees</p>
                   {stats.recentEmployees?.length === 0 ? (
                     <p className="text-muted">No recent employees.</p>
                   ) : (
                     <div className="table-responsive">
-                      <table className="table align-middle">
+                      <table className="table align-middle" style={{ fontSize: "14px" }}>
                         <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Date</th>
+                          <tr style={{ borderBottom: "2px solid #f1f5f9" }}>
+                            {["Name", "Department", "Status", "Date"].map(h => (
+                              <th key={h} style={{ color: "#94a3b8", fontWeight: "600", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", border: "none", paddingBottom: "12px" }}>{h}</th>
+                            ))}
                           </tr>
                         </thead>
-
                         <tbody>
                           {stats.recentEmployees?.map((emp) => (
-                            <tr key={emp.id}>
-                              <td>
-                                <div className="fw-semibold">{emp.name}</div>
-                                <small className="text-muted">
-                                  {emp.designation || "N/A"}
-                                </small>
+                            <tr key={emp.id} style={{ borderBottom: "1px solid #f8fafc" }}>
+                              <td style={{ border: "none", padding: "12px 8px" }}>
+                                <div style={{ fontWeight: "600", color: "#0f172a" }}>{emp.name}</div>
+                                <small style={{ color: "#94a3b8" }}>{emp.designation || "N/A"}</small>
                               </td>
-
-                              <td>{emp.department_name || "N/A"}</td>
-
-                              <td>
-                                <span
-                                  className={`badge ${
-                                    emp.status === "inactive"
-                                      ? "bg-danger"
-                                      : "bg-success"
-                                  }`}
-                                >
-                                  {emp.status === "inactive"
-                                    ? "Inactive"
-                                    : "Active"}
+                              <td style={{ border: "none", color: "#64748b" }}>{emp.department_name || "N/A"}</td>
+                              <td style={{ border: "none" }}>
+                                <span style={{
+                                  background: emp.status === "inactive" ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)",
+                                  color: emp.status === "inactive" ? "#ef4444" : "#10b981",
+                                  padding: "3px 10px", borderRadius: "99px", fontSize: "12px", fontWeight: "600",
+                                }}>
+                                  {emp.status === "inactive" ? "Inactive" : "Active"}
                                 </span>
                               </td>
-
-                              <td>{formatDate(emp.created_at)}</td>
+                              <td style={{ border: "none", color: "#94a3b8", fontSize: "13px" }}>{formatDate(emp.created_at)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -505,34 +409,25 @@ function Dashboard() {
                   )}
                 </div>
               </div>
-            </div>
 
-            <div className="col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body p-4">
-                  <h5 className="fw-bold mb-3">Recent Activity</h5>
-
+              <div className="col-lg-6">
+                <div style={{ background: "white", borderRadius: "16px", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)", height: "100%" }}>
+                  <p style={{ fontWeight: "700", color: "#0f172a", marginBottom: "16px", fontSize: "15px" }}>Audit Log</p>
                   {stats.activityLogs?.length === 0 ? (
                     <p className="text-muted">No activity logs yet.</p>
                   ) : (
-                    <div className="list-group list-group-flush">
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                       {stats.activityLogs?.map((log) => (
-                        <div
-                          key={log.id}
-                          className="list-group-item px-0 border-0 border-bottom"
-                        >
-                          <div className="d-flex justify-content-between">
-                            <strong>{log.action}</strong>
-                            <small className="text-muted">
-                              {formatDate(log.created_at)}
-                            </small>
+                        <div key={log.id} style={{
+                          borderLeft: "3px solid #10b981",
+                          paddingLeft: "14px",
+                        }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "2px" }}>
+                            <span style={{ fontWeight: "700", color: "#0f172a", fontSize: "14px" }}>{log.action}</span>
+                            <span style={{ color: "#94a3b8", fontSize: "12px" }}>{formatDate(log.created_at)}</span>
                           </div>
-
-                          <p className="text-muted mb-1">{log.description}</p>
-
-                          <small className="text-muted">
-                            By: {log.user_name || "System"}
-                          </small>
+                          <p style={{ color: "#64748b", margin: "0 0 2px", fontSize: "13px" }}>{log.description}</p>
+                          <small style={{ color: "#94a3b8" }}>By: {log.user_name || "System"}</small>
                         </div>
                       ))}
                     </div>
@@ -542,107 +437,65 @@ function Dashboard() {
             </div>
           </div>
 
-          <h4 className="fw-bold mb-3">Quick Actions</h4>
-
-          <div className="row g-4">
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/departments")}
-              >
-                <div className="icon-box">🏢</div>
-                <h5>Departments</h5>
-                <p className="text-muted">
-                  Create, update and manage departments.
-                </p>
-                <button className="btn btn-primary w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="action-card" onClick={() => navigate("/skills")}>
-                <div className="icon-box">🛠️</div>
-                <h5>Skills</h5>
-                <p className="text-muted">
-                  Manage technical and professional skills.
-                </p>
-                <button className="btn btn-success w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/create-employee")}
-              >
-                <div className="icon-box">👤</div>
-                <h5>Create Employee</h5>
-                <p className="text-muted">Add a new employee profile.</p>
-                <button className="btn btn-warning w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div
-                className="action-card"
-                onClick={() => navigate("/employees")}
-              >
-                <div className="icon-box">📋</div>
-                <h5>Employee List</h5>
-                <p className="text-muted">
-                  View, edit and manage all employees.
-                </p>
-                <button className="btn btn-dark w-100">Open</button>
-              </div>
-            </div>
-
-            <div className="col-lg-4 col-md-6">
-              <div className="action-card" onClick={() => navigate("/report")}>
-                <div className="icon-box">📊</div>
-                <h5>Reports</h5>
-                <p className="text-muted">
-                  View employee reports and export summaries.
-                </p>
-                <button className="btn btn-secondary w-100">Open</button>
-              </div>
+          {/* QUICK ACTIONS */}
+          <div>
+            <SectionHeader title="Quick Actions" />
+            <div className="row g-4">
+              {[
+                { icon: FaBuilding, label: "Departments", desc: "Create and manage departments", path: "/departments", color: "#8b5cf6", bg: "rgba(139,92,246,0.1)" },
+                { icon: FaTools, label: "Skills", desc: "Manage technical and soft skills", path: "/skills", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+                { icon: FaUserPlus, label: "Create Employee", desc: "Add a new employee to the system", path: "/create-employee", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+                { icon: FaClipboardList, label: "Employee List", desc: "View and manage all employees", path: "/employees", color: "#3b82f6", bg: "rgba(59,130,246,0.1)" },
+                { icon: FaChartBar, label: "Reports", desc: "Generate and export reports", path: "/report", color: "#06b6d4", bg: "rgba(6,182,212,0.1)" },
+              ].map(({ icon: Icon, label, desc, path, color, bg }) => (
+                <div className="col-lg-4 col-md-6" key={label}>
+                  <div
+                    onClick={() => navigate(path)}
+                    style={{
+                      background: "white", borderRadius: "16px", padding: "24px",
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                      cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s",
+                      borderTop: `3px solid ${color}`,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)"; }}
+                  >
+                    <div style={{
+                      width: "44px", height: "44px", borderRadius: "12px",
+                      background: bg, display: "flex", alignItems: "center",
+                      justifyContent: "center", marginBottom: "16px",
+                    }}>
+                      <Icon style={{ color, fontSize: "20px" }} />
+                    </div>
+                    <h6 style={{ fontWeight: "700", color: "#0f172a", margin: "0 0 6px" }}>{label}</h6>
+                    <p style={{ color: "#94a3b8", fontSize: "13px", margin: "0 0 16px" }}>{desc}</p>
+                    <span style={{
+                      color, fontSize: "13px", fontWeight: "600",
+                    }}>Open →</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </>
       )}
+
+      {/* Image modal */}
       {selectedImage && (
         <div
+          style={{ display: "block", backgroundColor: "rgba(0,0,0,0.8)" }}
           className="modal fade show"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0,0,0,0.7)",
-          }}
           tabIndex="-1"
           onClick={() => setSelectedImage(null)}
         >
-          <div
-            className="modal-dialog modal-dialog-centered modal-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="modal-content border-0">
-              <div className="modal-header">
-                <h5 className="modal-title">Image Preview</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setSelectedImage(null)}
-                ></button>
+          <div className="modal-dialog modal-dialog-centered modal-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-content border-0" style={{ borderRadius: "16px", overflow: "hidden" }}>
+              <div className="modal-header" style={{ borderBottom: "1px solid #f1f5f9" }}>
+                <h5 className="modal-title fw-bold">Image Preview</h5>
+                <button type="button" className="btn-close" onClick={() => setSelectedImage(null)}></button>
               </div>
-
-              <div className="modal-body text-center">
-                <img
-                  src={selectedImage}
-                  alt="Preview"
-                  className="img-fluid rounded"
-                  style={{
-                    maxHeight: "70vh",
-                    objectFit: "contain",
-                  }}
-                />
+              <div className="modal-body text-center p-4">
+                <img src={selectedImage} alt="Preview" className="img-fluid rounded" style={{ maxHeight: "70vh", objectFit: "contain" }} />
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 .app-layout {
   min-height: 100vh;
   display: flex;
-  background: #f4f7fb;
+  background: #f8fafc;
   transition: all 0.3s ease;
 }
 
@@ -9,7 +9,7 @@
 
 .sidebar {
   width: 260px;
-  background: #111827;
+  background: #0f172a;
   color: white;
   padding: 25px 20px;
   display: flex;
@@ -50,7 +50,7 @@
 
 .sidebar-menu a:hover,
 .sidebar-menu a.active {
-  background: #2563eb;
+  background: #10b981;
   color: white;
 }
 
@@ -143,15 +143,15 @@
 }
 
 .skill-option:hover {
-  background: #eef2ff;
-  border-color: #2563eb;
+  background: #ecfdf5;
+  border-color: #10b981;
 }
 
 /* Theme Toggle */
 
 .theme-toggle-btn {
   border: none;
-  background: #2563eb;
+  background: #10b981;
   color: white;
   padding: 10px 18px;
   border-radius: 10px;
@@ -237,7 +237,7 @@
 }
 
 .dark-mode .skill-option:hover {
-  background: #1e3a8a;
+  background: #064e3b;
 }
 
 .dark-mode .card-body,
