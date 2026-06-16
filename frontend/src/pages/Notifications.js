@@ -1,19 +1,15 @@
-/**
- * Notifications Page
- * View and manage user notifications
- */
-
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 import Layout from "../components/Layout";
 import Swal from "sweetalert2";
+import { FaBell, FaCheckDouble, FaCheck, FaInbox } from "react-icons/fa";
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 0 });
-  const [filter, setFilter] = useState("all"); // all, unread
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     fetchNotifications();
@@ -24,11 +20,7 @@ const Notifications = () => {
     try {
       setLoading(true);
       const response = await api.get("/notifications", {
-        params: {
-          page: pagination.page,
-          limit: pagination.limit,
-          unread_only: filter === "unread",
-        },
+        params: { page: pagination.page, limit: pagination.limit, unread_only: filter === "unread" },
       });
       setNotifications(response.data.data);
       setPagination(response.data.pagination);
@@ -69,115 +61,216 @@ const Notifications = () => {
     }
   };
 
+  const formatTime = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
   return (
     <Layout title="Notifications">
-      <div className="container-fluid py-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2>Notifications {unreadCount > 0 && <span className="badge bg-danger">{unreadCount}</span>}</h2>
+      {/* Page header */}
+      <div style={{
+        background: "linear-gradient(135deg, #0f172a, #134e4a)",
+        borderRadius: "16px", padding: "24px 32px",
+        marginBottom: "28px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        flexWrap: "wrap", gap: "16px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          <div style={{
+            width: "44px", height: "44px", borderRadius: "12px",
+            background: "rgba(16,185,129,0.15)",
+            border: "1px solid rgba(16,185,129,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <FaBell style={{ color: "#10b981", fontSize: "18px" }} />
+          </div>
+          <div>
+            <h2 style={{ color: "white", fontWeight: "800", margin: "0 0 2px", fontSize: "20px" }}>
+              Notifications
+              {unreadCount > 0 && (
+                <span style={{
+                  marginLeft: "10px", background: "#ef4444",
+                  color: "white", fontSize: "12px", fontWeight: "700",
+                  padding: "2px 8px", borderRadius: "99px",
+                }}>{unreadCount}</span>
+              )}
+            </h2>
+            <p style={{ color: "#94a3b8", margin: 0, fontSize: "13px" }}>
+              {unreadCount > 0 ? `${unreadCount} unread message${unreadCount > 1 ? "s" : ""}` : "You're all caught up"}
+            </p>
+          </div>
+        </div>
+
         {unreadCount > 0 && (
-          <button className="btn btn-outline-primary btn-sm" onClick={handleMarkAllAsRead}>
-            Mark All as Read
+          <button
+            onClick={handleMarkAllAsRead}
+            style={{
+              background: "rgba(16,185,129,0.15)",
+              border: "1px solid rgba(16,185,129,0.3)",
+              color: "#10b981", borderRadius: "10px",
+              padding: "8px 18px", fontSize: "13px",
+              fontWeight: "600", cursor: "pointer",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}
+          >
+            <FaCheckDouble style={{ fontSize: "12px" }} />
+            Mark all as read
           </button>
         )}
       </div>
 
-      {/* Filter Tabs */}
-      <div className="mb-4">
-        <button
-          className={`btn me-2 ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
-          onClick={() => {
-            setFilter("all");
-            setPagination({ ...pagination, page: 1 });
-          }}
-        >
-          All
-        </button>
-        <button
-          className={`btn ${filter === "unread" ? "btn-primary" : "btn-outline-primary"}`}
-          onClick={() => {
-            setFilter("unread");
-            setPagination({ ...pagination, page: 1 });
-          }}
-        >
-          Unread ({unreadCount})
-        </button>
+      {/* Filter tabs */}
+      <div style={{
+        display: "flex", gap: "8px", marginBottom: "20px",
+      }}>
+        {[
+          { key: "all", label: "All notifications" },
+          { key: "unread", label: `Unread (${unreadCount})` },
+        ].map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => { setFilter(key); setPagination(p => ({ ...p, page: 1 })); }}
+            style={{
+              padding: "8px 18px", borderRadius: "10px",
+              fontSize: "13px", fontWeight: "600", cursor: "pointer",
+              border: filter === key ? "none" : "1.5px solid #e2e8f0",
+              background: filter === key ? "linear-gradient(135deg, #10b981, #059669)" : "white",
+              color: filter === key ? "white" : "#64748b",
+              boxShadow: filter === key ? "0 4px 12px rgba(16,185,129,0.3)" : "none",
+              transition: "all 0.2s",
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
-      {/* Notifications List */}
-      <div className="row">
-        <div className="col-lg-8">
-          {loading ? (
-            <div className="text-center py-5">
-              <div className="spinner-border" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
+      {/* Content */}
+      <div style={{ maxWidth: "760px" }}>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "60px 0" }}>
+            <div className="spinner-border" style={{ color: "#10b981" }} role="status" />
+            <p style={{ color: "#94a3b8", marginTop: "12px", fontSize: "14px" }}>Loading notifications...</p>
+          </div>
+        ) : notifications.length === 0 ? (
+          <div style={{
+            background: "white", borderRadius: "16px",
+            padding: "60px", textAlign: "center",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+          }}>
+            <div style={{
+              width: "64px", height: "64px", borderRadius: "16px",
+              background: "rgba(16,185,129,0.08)",
+              border: "1.5px solid rgba(16,185,129,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 16px",
+            }}>
+              <FaInbox style={{ color: "#10b981", fontSize: "26px" }} />
             </div>
-          ) : notifications.length === 0 ? (
-            <div className="alert alert-info">No notifications</div>
-          ) : (
-            <div>
-              {notifications.map((notif) => (
-                <div
-                  key={notif.id}
-                  className={`card mb-3 ${!notif.is_read ? "border-primary" : ""}`}
-                >
-                  <div className="card-body">
-                    <div className="d-flex justify-content-between align-items-start">
-                      <div className="flex-grow-1">
-                        <h5 className="card-title mb-1">{notif.title}</h5>
-                        <p className="card-text text-muted mb-2">{notif.message}</p>
-                        <small className="text-muted">
-                          {new Date(notif.created_at).toLocaleString()}
-                        </small>
-                      </div>
-                      <div>
-                        {!notif.is_read && (
-                          <span className="badge bg-primary me-2">New</span>
-                        )}
-                        {!notif.is_read && (
-                          <button
-                            className="btn btn-sm btn-outline-primary"
-                            onClick={() => handleMarkAsRead(notif.id)}
-                          >
-                            Mark Read
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+            <h5 style={{ color: "#0f172a", fontWeight: "700", margin: "0 0 6px" }}>No notifications</h5>
+            <p style={{ color: "#94a3b8", margin: 0, fontSize: "14px" }}>
+              {filter === "unread" ? "No unread notifications." : "You're all caught up — nothing here yet."}
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {notifications.map((notif) => (
+              <div
+                key={notif.id}
+                style={{
+                  background: "white",
+                  borderRadius: "14px",
+                  padding: "20px 24px",
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                  borderLeft: `4px solid ${!notif.is_read ? "#10b981" : "#e2e8f0"}`,
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  transition: "box-shadow 0.2s",
+                }}
+              >
+                {/* left dot indicator */}
+                <div style={{ flexShrink: 0, paddingTop: "4px" }}>
+                  <div style={{
+                    width: "10px", height: "10px", borderRadius: "50%",
+                    background: !notif.is_read ? "#10b981" : "#e2e8f0",
+                  }} />
                 </div>
-              ))}
 
-              {/* Pagination */}
-              {pagination.pages > 1 && (
-                <nav aria-label="Notifications pagination">
-                  <ul className="pagination justify-content-center">
-                    {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
-                      (page) => (
-                        <li
-                          key={page}
-                          className={`page-item ${
-                            pagination.page === page ? "active" : ""
-                          }`}
-                        >
-                          <button
-                            className="page-link"
-                            onClick={() =>
-                              setPagination({ ...pagination, page })
-                            }
-                          >
-                            {page}
-                          </button>
-                        </li>
-                      )
+                {/* content */}
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <h6 style={{ fontWeight: "700", color: "#0f172a", margin: 0, fontSize: "15px" }}>
+                      {notif.title}
+                    </h6>
+                    {!notif.is_read && (
+                      <span style={{
+                        background: "rgba(16,185,129,0.1)", color: "#059669",
+                        fontSize: "11px", fontWeight: "700",
+                        padding: "2px 8px", borderRadius: "99px",
+                        border: "1px solid rgba(16,185,129,0.2)",
+                      }}>NEW</span>
                     )}
-                  </ul>
-                </nav>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
+                  </div>
+                  <p style={{ color: "#64748b", margin: "0 0 8px", fontSize: "14px", lineHeight: "1.5" }}>
+                    {notif.message}
+                  </p>
+                  <span style={{ color: "#94a3b8", fontSize: "12px" }}>
+                    {formatTime(notif.created_at)}
+                  </span>
+                </div>
+
+                {/* action */}
+                {!notif.is_read && (
+                  <button
+                    onClick={() => handleMarkAsRead(notif.id)}
+                    title="Mark as read"
+                    style={{
+                      flexShrink: 0,
+                      background: "rgba(16,185,129,0.08)",
+                      border: "1px solid rgba(16,185,129,0.2)",
+                      color: "#10b981", borderRadius: "8px",
+                      padding: "6px 12px", fontSize: "12px",
+                      fontWeight: "600", cursor: "pointer",
+                      display: "flex", alignItems: "center", gap: "6px",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <FaCheck style={{ fontSize: "10px" }} /> Mark read
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {/* Pagination */}
+            {pagination.pages > 1 && (
+              <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginTop: "16px" }}>
+                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setPagination(p => ({ ...p, page }))}
+                    style={{
+                      width: "36px", height: "36px", borderRadius: "8px",
+                      border: pagination.page === page ? "none" : "1.5px solid #e2e8f0",
+                      background: pagination.page === page ? "linear-gradient(135deg, #10b981, #059669)" : "white",
+                      color: pagination.page === page ? "white" : "#64748b",
+                      fontWeight: "600", fontSize: "14px", cursor: "pointer",
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Layout>
   );
